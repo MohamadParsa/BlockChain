@@ -4,10 +4,11 @@ import (
 	"fmt"
 
 	"github.com/MohamadParsa/BlockChain/v1/block"
+	"github.com/MohamadParsa/BlockChain/v1/transaction"
 )
 
 type BlockChain struct {
-	transactionsPool []string
+	transactionsPool []*transaction.Transaction
 	chain            []*block.Block
 }
 
@@ -17,7 +18,8 @@ func New() *BlockChain {
 	return blockChain
 }
 func (blockChain *BlockChain) AddBlock(nonce int64) *block.Block {
-	b := block.New(nonce, blockChain.LastBlock().Hash())
+	b := block.New(nonce, blockChain.LastBlock().Hash(), blockChain.transactionsPool)
+	blockChain.transactionsPool = []*transaction.Transaction{}
 	blockChain.chain = append(blockChain.chain, b)
 	return b
 }
@@ -33,4 +35,7 @@ func (blockChain *BlockChain) LastBlock() *block.Block {
 		return &block.Block{}
 	}
 	return blockChain.chain[len(blockChain.chain)-1]
+}
+func (blockChain *BlockChain) AddTransaction(transaction *transaction.Transaction) {
+	blockChain.transactionsPool = append(blockChain.transactionsPool, transaction)
 }
