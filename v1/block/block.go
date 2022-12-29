@@ -39,6 +39,10 @@ func (block *Block) Print() {
 	fmt.Println(strings.Repeat("-", 100))
 
 }
+func (block *Block) HashString() string {
+	hash := block.Hash()
+	return fmt.Sprintf("%x", hash)
+}
 func (block *Block) Hash() [32]byte {
 	marshal, _ := json.Marshal(block)
 	return sha256.Sum256(marshal)

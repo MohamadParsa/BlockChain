@@ -39,3 +39,11 @@ func (blockChain *BlockChain) LastBlock() *block.Block {
 func (blockChain *BlockChain) AddTransaction(transaction *transaction.Transaction) {
 	blockChain.transactionsPool = append(blockChain.transactionsPool, transaction)
 }
+func (blockChain *BlockChain) CopyTransactions() []*transaction.Transaction {
+	transactions := []*transaction.Transaction{}
+	for _, transaction := range blockChain.transactionsPool {
+		temp := *transaction
+		transactions = append(transactions, &temp)
+	}
+	return transactions
+}
