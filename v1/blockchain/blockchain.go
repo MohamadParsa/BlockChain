@@ -26,7 +26,7 @@ func (blockChain *BlockChain) AddBlock(nonce int64) *block.Block {
 
 func (blockChain *BlockChain) Print() {
 	for index, block := range blockChain.chain {
-		fmt.Println("block number: ", index)
+		fmt.Println("block number: ", index+1)
 		block.Print()
 	}
 }

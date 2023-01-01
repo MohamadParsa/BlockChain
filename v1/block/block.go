@@ -25,7 +25,13 @@ func New(nonce int64, previousHash [32]byte, transactions []*transaction.Transac
 		transactions: transactions,
 	}
 }
-
+func CreateCandidateBlock(nonce int64, previousHash [32]byte, transactions []*transaction.Transaction) *Block {
+	return &Block{
+		nonce:        nonce,
+		previousHash: previousHash,
+		transactions: transactions,
+	}
+}
 func (block *Block) Print() {
 
 	fmt.Println(strings.Repeat("_", 100))
@@ -33,7 +39,7 @@ func (block *Block) Print() {
 	fmt.Printf("| nonce:		%d\n", block.nonce)
 	fmt.Printf("| previous hash:	%x\n", block.previousHash)
 	for index, transaction := range block.transactions {
-		fmt.Printf("| transactions:		%d\n", index)
+		fmt.Printf("| transactions number:		%d\n", index+1)
 		transaction.Print()
 	}
 	fmt.Println(strings.Repeat("-", 100))
