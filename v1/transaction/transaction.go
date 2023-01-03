@@ -19,6 +19,18 @@ func New(senderAddress string, recipientAddress string, value float64) *Transact
 	}
 }
 
+func (transaction *Transaction) SenderAddress() string {
+	return transaction.senderAddress
+}
+
+func (transaction *Transaction) RecipientAddress() string {
+	return transaction.recipientAddress
+}
+
+func (transaction *Transaction) Value() float64 {
+	return transaction.value
+}
+
 func (transaction *Transaction) Print() {
 	fmt.Printf("$	sender:		%s\n", transaction.senderAddress)
 	fmt.Printf("$	recipient:	%s\n", transaction.recipientAddress)

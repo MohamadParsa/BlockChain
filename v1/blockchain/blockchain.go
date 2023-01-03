@@ -47,3 +47,12 @@ func (blockChain *BlockChain) CopyTransactions() []*transaction.Transaction {
 	}
 	return transactions
 }
+
+func (blockChain *BlockChain) CalculateTotalAmount(walletAddress string) float64 {
+	var totalAmount float64 = 0.0
+	for _, block := range blockChain.chain {
+		totalAmount = totalAmount + block.CalculateTotalAmount(walletAddress)
+	}
+
+	return totalAmount
+}

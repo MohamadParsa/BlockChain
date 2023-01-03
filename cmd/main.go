@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/MohamadParsa/BlockChain/v1/blockchain"
 	"github.com/MohamadParsa/BlockChain/v1/miner"
 	"github.com/MohamadParsa/BlockChain/v1/transaction"
@@ -18,4 +20,5 @@ func main() {
 
 	miner.Mining()
 	blockCh.Print()
+	fmt.Println(blockCh.CalculateTotalAmount("recipient2"))
 }
