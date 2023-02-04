@@ -3,8 +3,8 @@ package blockchain
 import (
 	"fmt"
 
-	"github.com/MohamadParsa/BlockChain/v1/block"
-	"github.com/MohamadParsa/BlockChain/v1/transaction"
+	"github.com/MohamadParsa/BlockChain/v1/blocks/block"
+	"github.com/MohamadParsa/BlockChain/v1/blocks/transaction"
 )
 
 type BlockChain struct {

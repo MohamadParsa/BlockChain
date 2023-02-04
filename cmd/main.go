@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 
-	"github.com/MohamadParsa/BlockChain/v1/blockchain"
-	"github.com/MohamadParsa/BlockChain/v1/miner"
-	"github.com/MohamadParsa/BlockChain/v1/transaction"
+	"github.com/MohamadParsa/BlockChain/v1/blocks/blockchain"
+	"github.com/MohamadParsa/BlockChain/v1/blocks/miner"
+	"github.com/MohamadParsa/BlockChain/v1/blocks/transaction"
+	"github.com/MohamadParsa/BlockChain/v1/wallet"
 )
 
 func main() {
@@ -21,4 +22,10 @@ func main() {
 	miner.Mining()
 	blockCh.Print()
 	fmt.Println(blockCh.CalculateTotalAmount("recipient2"))
+
+	w, err := wallet.New()
+	fmt.Println(w, err, w.PublicKey())
+	fmt.Println(w.Sign("hi Mohamad"))
+	fmt.Println(w.Sign("hi Mohamad"))
+
 }
