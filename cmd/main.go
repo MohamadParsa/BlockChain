@@ -27,5 +27,6 @@ func main() {
 	fmt.Println(w, err, w.PublicKey())
 	fmt.Println(w.Sign("hi Mohamad"))
 	fmt.Println(w.Sign("hi Mohamad"))
+	fmt.Println(w.Address())
 
 }
