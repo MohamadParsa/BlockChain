@@ -8,8 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"math/big"
 
+	"github.com/MohamadParsa/BlockChain/v1/blocks/transaction"
+	"github.com/MohamadParsa/BlockChain/v1/wallet/signature"
 	"github.com/btcsuite/btcd/btcutil/base58"
 	logger "go.uber.org/zap"
 	"golang.org/x/crypto/ripemd160"
@@ -103,34 +104,42 @@ func (wallet *Wallet) Address() string {
 	}
 	return wallet.address
 }
-
-func (wallet *Wallet) Sign(text string) (string, error) {
+func (wallet *Wallet) SendCrypto(recipient_address string, value float64) (*transaction.Transaction, error) {
 	if wallet == nil {
-		return "", errors.New("Wallet not initialized")
+		return nil, errors.New("wallet is invalid")
 	}
-	r, s, err := wallet.sign(text)
-	if err != nil {
-		return "", errors.New("failed to sign")
-	}
-	return fmt.Sprintf("%x%x", r, s), nil
+	transaction := transaction.New(wallet.Address(), recipient_address, value)
+	return transaction, nil
 }
 
-func (wallet *Wallet) sign(text string) (r *big.Int, s *big.Int, err error) {
-	hash := sha256.Sum256([]byte(text))
-	r, s, err = ecdsa.Sign(rand.Reader, wallet.privateKey, hash[:])
-	if err != nil {
-		return r, s, errors.New("failed to sign")
+func (wallet *Wallet) Sign(transaction *transaction.Transaction) (*signature.Signature, error) {
+	if wallet == nil {
+		return nil, errors.New("Wallet not initialized")
 	}
-	return r, s, nil
+	if transaction.SenderAddress() != wallet.Address() {
+		return nil, errors.New("transaction is invalid")
+	}
+	transactionJsonBytes, err := transaction.MarshalJSON()
+	if err != nil {
+		return nil, errors.New("failed to sign")
+	}
+	signature, err := wallet.sign(transactionJsonBytes)
+	if err != nil {
+		return nil, errors.New("failed to sign")
+	}
+	return signature, nil
 }
 
-//	func (wallet *Wallet) Verify(hash []byte) bool {
-//		if wallet == nil {
-//			return false
-//		}
-//		r, s, err := wallet
-//		return ecdsa.Verify(wallet.publicKey, hash)
-//	}
+func (wallet *Wallet) sign(transaction []byte) (*signature.Signature, error) {
+	hash := sha256.Sum256(transaction)
+	r, s, err := ecdsa.Sign(rand.Reader, wallet.privateKey, hash[:])
+	if err != nil {
+		return nil, errors.New("failed to sign")
+	}
+
+	return signature.New(r, s), nil
+}
+
 func logError(err error, lastError *error) {
 	if err != nil {
 		logger.Error(err)

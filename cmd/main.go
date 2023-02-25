@@ -25,8 +25,11 @@ func main() {
 
 	w, err := wallet.New()
 	fmt.Println(w, err, w.PublicKey())
-	fmt.Println(w.Sign("hi Mohamad"))
-	fmt.Println(w.Sign("hi Mohamad"))
+	transaction, _ := w.SendCrypto("a", 1)
+	fmt.Println(transaction)
+	fmt.Println("ffffffff")
+	fmt.Println(w.Sign(transaction))
+	fmt.Println("w.Sign(transaction)")
 	fmt.Println(w.Address())
 
 }
