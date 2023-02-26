@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/MohamadParsa/BlockChain/v1/blocks/transaction"
+	"github.com/MohamadParsa/BlockChain/v1/transaction"
 )
 
 type Block struct {

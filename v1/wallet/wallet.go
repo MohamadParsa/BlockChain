@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/MohamadParsa/BlockChain/v1/blocks/transaction"
-	"github.com/MohamadParsa/BlockChain/v1/wallet/signature"
+	"github.com/MohamadParsa/BlockChain/v1/signature"
+	"github.com/MohamadParsa/BlockChain/v1/transaction"
 	"github.com/btcsuite/btcd/btcutil/base58"
 	logger "go.uber.org/zap"
 	"golang.org/x/crypto/ripemd160"

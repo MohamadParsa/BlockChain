@@ -6,7 +6,7 @@ import (
 
 	"github.com/MohamadParsa/BlockChain/v1/blocks/block"
 	"github.com/MohamadParsa/BlockChain/v1/blocks/blockchain"
-	"github.com/MohamadParsa/BlockChain/v1/blocks/transaction"
+	"github.com/MohamadParsa/BlockChain/v1/transaction"
 )
 
 const (

@@ -1,10 +1,12 @@
 package blockchain
 
 import (
+	"crypto/ecdsa"
 	"fmt"
 
 	"github.com/MohamadParsa/BlockChain/v1/blocks/block"
-	"github.com/MohamadParsa/BlockChain/v1/blocks/transaction"
+	"github.com/MohamadParsa/BlockChain/v1/signature"
+	"github.com/MohamadParsa/BlockChain/v1/transaction"
 )
 
 type BlockChain struct {
@@ -36,8 +38,13 @@ func (blockChain *BlockChain) LastBlock() *block.Block {
 	}
 	return blockChain.chain[len(blockChain.chain)-1]
 }
-func (blockChain *BlockChain) AddTransaction(transaction *transaction.Transaction) {
+func (blockChain *BlockChain) AddTransaction(publicKey *ecdsa.PublicKey, sign *signature.Signature, transaction *transaction.Transaction) (bool, error) {
+
+	if ok, err := signature.VerifySignature(publicKey, sign, transaction); !ok {
+		return ok, err
+	}
 	blockChain.transactionsPool = append(blockChain.transactionsPool, transaction)
+	return true, nil
 }
 func (blockChain *BlockChain) CopyTransactions() []*transaction.Transaction {
 	transactions := []*transaction.Transaction{}
