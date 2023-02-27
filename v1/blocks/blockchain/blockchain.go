@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"crypto/ecdsa"
+	"encoding/json"
 	"fmt"
 
 	"github.com/MohamadParsa/BlockChain/v1/blocks/block"
@@ -37,6 +38,17 @@ func (blockChain *BlockChain) Print() {
 		block.Print()
 	}
 }
+
+func (blockChain *BlockChain) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		TransactionsPool []*transaction.Transaction `json:"transactionsPool"`
+		Chain            []*block.Block             `json:"chain"`
+	}{
+		TransactionsPool: blockChain.transactionsPool,
+		Chain:            blockChain.chain,
+	})
+}
+
 func (blockChain *BlockChain) LastBlock() *block.Block {
 	if len(blockChain.chain) == 0 {
 		return &block.Block{}

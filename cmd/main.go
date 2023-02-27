@@ -5,14 +5,17 @@ import (
 
 	"github.com/MohamadParsa/BlockChain/v1/blocks/blockchain"
 	"github.com/MohamadParsa/BlockChain/v1/miner"
+	"github.com/MohamadParsa/BlockChain/v1/miner/server"
 	"github.com/MohamadParsa/BlockChain/v1/wallet"
 )
 
 func main() {
+
 	blockCh := blockchain.New()
 
 	minerWallet, _ := wallet.New()
 	miner := miner.New(blockCh, 3, minerWallet)
+	restFull := server.New(miner)
 
 	wA, _ := wallet.New()
 	wB, _ := wallet.New()
@@ -27,5 +30,5 @@ func main() {
 	fmt.Println(blockCh.CalculateTotalAmount(wA.Address()))
 	fmt.Println(blockCh.CalculateTotalAmount(wB.Address()))
 	fmt.Println(blockCh.CalculateTotalAmount(minerWallet.Address()))
-
+	restFull.Serve(":8080")
 }

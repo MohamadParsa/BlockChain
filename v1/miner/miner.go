@@ -68,3 +68,8 @@ func (miner *Miner) validateNonce(nonce int64, previousHash [32]byte, transactio
 	}
 
 }
+
+func (miner *Miner) BlockChain() *blockchain.BlockChain {
+	return miner.blockChain
+
+}
