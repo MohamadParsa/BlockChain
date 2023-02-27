@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/big"
 
@@ -30,6 +31,9 @@ func (signature *Signature) String() string {
 	return fmt.Sprintf("%x%x", signature.r, signature.s)
 }
 func VerifySignature(publicKey *ecdsa.PublicKey, signature *Signature, transaction *transaction.Transaction) (bool, error) {
+	if signature == nil {
+		return false, errors.New("signature is invalid")
+	}
 	transactionJsonBytes, err := json.Marshal(transaction)
 	if err != nil {
 		return false, err

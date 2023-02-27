@@ -7,31 +7,29 @@ import (
 	"github.com/MohamadParsa/BlockChain/v1/blocks/block"
 	"github.com/MohamadParsa/BlockChain/v1/blocks/blockchain"
 	"github.com/MohamadParsa/BlockChain/v1/transaction"
-)
-
-const (
-	MINING_REWARD_SENDER_ADDRESS = "reward_sender_address"
-	REWARD                       = 6.25
+	"github.com/MohamadParsa/BlockChain/v1/wallet"
 )
 
 type Miner struct {
-	blockChain         *blockchain.BlockChain
-	difficulty         int
-	minerWalletAddress string
+	blockChain  *blockchain.BlockChain
+	difficulty  int
+	minerWallet *wallet.Wallet
 }
 
-func New(blockChain *blockchain.BlockChain, difficulty int, minerWalletAddress string) *Miner {
+func New(blockChain *blockchain.BlockChain, difficulty int, minerWallet *wallet.Wallet) *Miner {
+
 	return &Miner{
-		blockChain:         blockChain,
-		difficulty:         difficulty,
-		minerWalletAddress: minerWalletAddress,
+		blockChain:  blockChain,
+		difficulty:  difficulty,
+		minerWallet: minerWallet,
 	}
 }
 
-func (miner *Miner) Mining() {
+func (miner *Miner) Mining() error {
 
-	transaction := transaction.New(MINING_REWARD_SENDER_ADDRESS, miner.minerWalletAddress, REWARD)
-	miner.blockChain.AddTransaction(transaction)
+	transaction := transaction.New(miner.blockChain.MiningRewardSenderAddress(), miner.minerWallet.Address(), miner.blockChain.MiningReward())
+
+	miner.blockChain.AddTransaction(miner.minerWallet.PublicKey(), nil, transaction)
 
 	transactions := miner.blockChain.CopyTransactions()
 	previousHash := miner.blockChain.LastBlock().Hash()
@@ -39,6 +37,7 @@ func (miner *Miner) Mining() {
 	nonce := miner.findValidNonce(previousHash, transactions)
 
 	miner.blockChain.AddBlock(nonce)
+	return nil
 
 }
 

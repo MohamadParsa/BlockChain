@@ -9,6 +9,11 @@ import (
 	"github.com/MohamadParsa/BlockChain/v1/transaction"
 )
 
+const (
+	MINING_REWARD_SENDER_ADDRESS = "reward_sender_address"
+	MINING_REWARD                = 6.25
+)
+
 type BlockChain struct {
 	transactionsPool []*transaction.Transaction
 	chain            []*block.Block
@@ -39,9 +44,11 @@ func (blockChain *BlockChain) LastBlock() *block.Block {
 	return blockChain.chain[len(blockChain.chain)-1]
 }
 func (blockChain *BlockChain) AddTransaction(publicKey *ecdsa.PublicKey, sign *signature.Signature, transaction *transaction.Transaction) (bool, error) {
-
-	if ok, err := signature.VerifySignature(publicKey, sign, transaction); !ok {
-		return ok, err
+	if !blockChain.isValidRewardTransaction(transaction) {
+		if verify, err := signature.VerifySignature(publicKey, sign, transaction); !verify ||
+			blockChain.CalculateTotalAmount(transaction.SenderAddress()) < transaction.Value() {
+			return false, err
+		}
 	}
 	blockChain.transactionsPool = append(blockChain.transactionsPool, transaction)
 	return true, nil
@@ -62,4 +69,19 @@ func (blockChain *BlockChain) CalculateTotalAmount(walletAddress string) float64
 	}
 
 	return totalAmount
+}
+
+func (blockChain *BlockChain) MiningRewardSenderAddress() string {
+	return MINING_REWARD_SENDER_ADDRESS
+}
+func (blockChain *BlockChain) MiningReward() float64 {
+	return MINING_REWARD
+}
+
+func (blockChain *BlockChain) isValidRewardTransaction(transaction *transaction.Transaction) bool {
+	//TODO: implement register miner and check the recipient address is one of registered miner
+	if transaction.SenderAddress() == blockChain.MiningRewardSenderAddress() && transaction.Value() == blockChain.MiningReward() {
+		return true
+	}
+	return false
 }
