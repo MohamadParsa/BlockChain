@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>My Wallet</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+  </head>
+  <body>
+    <h1>My Wallet</h1>
+    <label>Balance:</label>
+    <label id="Balance">0</label>
+    <button onclick="refreshWallet()">&#x21bb;</button>
+    <!-- Refresh button -->
+   
+    
+    <br>
+    <!-- Public key label -->
+    <label>Public key:</label>
+    <div id="public-key" style="word-wrap: anywhere;color: darkgray;font-size: small;" >{{.PublicKeyString}}</div>
+    
+    <!-- Blockchain address label -->
+    <label>Wallet ddress:</label>
+    <div id="wallet-address" style="word-wrap: anywhere;color: darkgray;font-size: small;">{{.Address}}</div>
+    
+    <!-- Send money div -->
+    <div>
+      <h2>Send</h2>
+      
+      <label>Recipient Address:</label>
+      <input type="text" id="recipient-address">
+      
+      <label>Amount:</label>
+      <input type="text" id="amount">
+      
+      <button onclick="sendMoney()">Send</button>
+    </div>
+    
+    <script>
+      function refreshWallet() {
+        // Code to refresh wallet
+      }
+      
+      function sendMoney() {
+        // Code to send money
+      }
+    </script>
+  </body>
+</html>

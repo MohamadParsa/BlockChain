@@ -1,4 +1,4 @@
-package server
+package miner_server
 
 import (
 	"encoding/json"

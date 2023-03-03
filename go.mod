@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/btcsuite/btcd/btcutil v1.1.3
 	github.com/gin-gonic/gin v1.9.0
+	github.com/sirupsen/logrus v1.9.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.5.0
 )
