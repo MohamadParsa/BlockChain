@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/MohamadParsa/BlockChain/v1/signature"
@@ -97,18 +98,23 @@ func (wallet *Wallet) PublicKey() *ecdsa.PublicKey {
 	publicKey := *wallet.publicKey
 	return &publicKey
 }
-
+func (wallet *Wallet) PublicKeyString() string {
+	if wallet == nil {
+		return ""
+	}
+	return fmt.Sprintf("%x%x", wallet.publicKey.X, wallet.publicKey.Y)
+}
 func (wallet *Wallet) Address() string {
 	if wallet == nil {
 		return ""
 	}
 	return wallet.address
 }
-func (wallet *Wallet) SendCrypto(recipient_address string, value float64) (*transaction.Transaction, error) {
+func (wallet *Wallet) SendCrypto(recipient_address string, amount float64) (*transaction.Transaction, error) {
 	if wallet == nil {
 		return nil, errors.New("wallet is invalid")
 	}
-	transaction := transaction.New(wallet.Address(), recipient_address, value)
+	transaction := transaction.New(wallet.Address(), recipient_address, amount)
 	return transaction, nil
 }
 

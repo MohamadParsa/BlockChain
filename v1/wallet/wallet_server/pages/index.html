@@ -23,7 +23,7 @@
     
     <!-- Send money div -->
     <div>
-      <h2>Send</h2>
+      <h2>Send Crypto</h2>
       
       <label>Recipient Address:</label>
       <input type="text" id="recipient-address">
@@ -31,7 +31,7 @@
       <label>Amount:</label>
       <input type="text" id="amount">
       
-      <button onclick="sendMoney()">Send</button>
+      <button onclick="sendCrypto()">Send</button>
     </div>
     
     <script>
@@ -39,8 +39,23 @@
         // Code to refresh wallet
       }
       
-      function sendMoney() {
-        // Code to send money
+      function sendCrypto() {
+         $.ajax({
+  
+                url:'sendCrypto',
+                type: "POST",
+                dataType:"aplication/json",
+                data:JSON.stringify({"recipient_address":$('#recipient-address').val(),"amount":$('#amount').val()}),
+                success: function (res) {
+                    var x = JSON.stringify(res);
+                    console.log(x);
+                },
+  
+                // Error handling 
+                error: function (error) {
+                    console.log(`Error ${error}`);
+                }
+            });
       }
     </script>
   </body>
