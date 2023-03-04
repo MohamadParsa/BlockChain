@@ -110,7 +110,10 @@ func extractSendCryptoData(b io.Reader, h http.Header) (*SendCryptoRequest, bool
 		log.Error(errors.Wrap(err, "failed to extract sendCrypto request information from body"))
 		return nil, false
 	}
-
+	if stringTofloat64(sendCryptoRequest.Amount) <= 0 || sendCryptoRequest.RecipientAddress == "" {
+		log.Error("failed to extract sendCrypto request required information from body")
+		return nil, false
+	}
 	return &sendCryptoRequest, true
 }
 func stringTofloat64(num string) float64 {
