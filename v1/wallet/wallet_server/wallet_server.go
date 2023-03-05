@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"text/template"
@@ -21,10 +22,13 @@ const (
 )
 
 type Server struct {
-	wallet *wallet.Wallet
+	wallet                   *wallet.Wallet
+	blockChainServersAddress map[string]string
 }
 
 func New(wallet *wallet.Wallet) *Server {
+	blockChainServersAddress := make(map[string]string)
+	blockChainServersAddress["main"] = "localhost:8080"
 	return &Server{wallet: wallet}
 }
 func (server Server) Serve(port string) {
@@ -55,9 +59,19 @@ func (server Server) index(c *gin.Context) {
 }
 func (server Server) sendCrypto(c *gin.Context) {
 	if sendCryptoRequest, ok := extractSendCryptoData(c.Request.Body, c.Request.Header); ok {
-		tran, err := server.wallet.SendCrypto(sendCryptoRequest.RecipientAddress, stringTofloat64(sendCryptoRequest.Amount))
+		transactionRequest, err := server.wallet.SendCrypto(sendCryptoRequest.RecipientAddress, stringTofloat64(sendCryptoRequest.Amount))
+
 		if err != nil {
-			fmt.Println(tran)
+			jsonByte, err := json.Marshal(transactionRequest)
+			if err != nil {
+				for serverAddress := range server.blockChainServersAddress {
+					go func(serverAddress string) {
+						response, err := http.Post(serverAddress, "application/json", bytes.NewReader(jsonByte))
+						res, _ := ioutil.ReadAll(response.Body)
+						fmt.Println(res, err)
+					}(serverAddress)
+				}
+			}
 		}
 		message := "success"
 		if err != nil {
