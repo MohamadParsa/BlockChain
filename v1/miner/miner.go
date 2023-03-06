@@ -7,6 +7,7 @@ import (
 	"github.com/MohamadParsa/BlockChain/v1/blocks/block"
 	"github.com/MohamadParsa/BlockChain/v1/blocks/blockchain"
 	"github.com/MohamadParsa/BlockChain/v1/transaction"
+	"github.com/MohamadParsa/BlockChain/v1/transaction/transaction_request"
 	"github.com/MohamadParsa/BlockChain/v1/wallet"
 )
 
@@ -40,7 +41,13 @@ func (miner *Miner) Mining() error {
 	return nil
 
 }
+func (miner *Miner) AddTransaction(transactionRequest *transaction_request.TransactionRequest) (bool, error) {
+	publicKey := transactionRequest.PublicKey()
+	signature := transactionRequest.Signature()
+	ok, err := miner.blockChain.AddTransaction(&publicKey, &signature, &transactionRequest.Transaction)
+	return ok, err
 
+}
 func (miner *Miner) findValidNonce(previousHash [32]byte, transactions []*transaction.Transaction) int64 {
 	var nonce int64 = 1
 	findNumber := make(chan int64)

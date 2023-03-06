@@ -11,6 +11,7 @@ type Transaction struct {
 	value            float64
 }
 
+
 func New(senderAddress string, recipientAddress string, value float64) *Transaction {
 	return &Transaction{
 		senderAddress:    senderAddress,
