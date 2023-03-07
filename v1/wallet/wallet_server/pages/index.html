@@ -45,7 +45,7 @@
                 url:'sendCrypto',
                 type: "POST",
                 dataType:"aplication/json",
-                data:JSON.stringify({"recipient_address":$('#recipient-address').val(),"amount":$('#amount').val()}),
+                data:JSON.stringify({"recipientAddress":$('#recipient-address').val(),"amount":$('#amount').val()}),
                 success: function (res) {
                     var x = JSON.stringify(res);
                     console.log(x);

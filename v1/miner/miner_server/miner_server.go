@@ -2,6 +2,7 @@ package miner_server
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -37,7 +38,7 @@ func (restFull RestFull) Serve(port string) {
 }
 func (restFull RestFull) setAPIMethodsV1(router *gin.RouterGroup) {
 	router.GET("/blockChain", restFull.blockChain)
-	router.POST("/Transaction", restFull.transaction)
+	router.POST("/AddTransaction", restFull.transaction)
 }
 
 func (restFull RestFull) blockChain(c *gin.Context) {
@@ -45,9 +46,15 @@ func (restFull RestFull) blockChain(c *gin.Context) {
 	writeResponse(c, jsonByteResult, err)
 }
 func (restFull RestFull) transaction(c *gin.Context) {
+	fmt.Println(32)
 	transactionRequest, ok := extractTransactionRequest(c.Request.Body)
+	fmt.Println("transactionRequest", transactionRequest)
+	fmt.Println(ok)
+
 	if ok {
 		ok, err := restFull.miner.AddTransaction(transactionRequest)
+		fmt.Println(ok, err)
+
 		jsonByteResult, _ := json.Marshal(ok)
 		writeResponse(c, jsonByteResult, err)
 	} else {
@@ -75,7 +82,7 @@ func extractTransactionRequest(b io.Reader) (*transaction_request.TransactionReq
 		log.Error(errors.Wrap(err, "failed to extract description request information from body"))
 		return nil, false
 	}
-
+	fmt.Println("transactionRequest", transactionRequest)
 	return &transactionRequest, isTransactionRequestValid(&transactionRequest)
 }
 func isTransactionRequestValid(transactionRequest *transaction_request.TransactionRequest) bool {

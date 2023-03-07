@@ -69,11 +69,11 @@ func (block *Block) MarshalJSON() ([]byte, error) {
 func (block *Block) CalculateTotalAmount(walletAddress string) float64 {
 	var totalAmount float64 = 0.0
 	for _, transaction := range block.transactions {
-		if transaction.SenderAddress() == walletAddress {
-			totalAmount = totalAmount - transaction.Value()
+		if transaction.SenderAddress == walletAddress {
+			totalAmount = totalAmount - transaction.Value
 		}
-		if transaction.RecipientAddress() == walletAddress {
-			totalAmount = totalAmount + transaction.Value()
+		if transaction.RecipientAddress == walletAddress {
+			totalAmount = totalAmount + transaction.Value
 		}
 	}
 	return totalAmount

@@ -128,7 +128,7 @@ func (wallet *Wallet) Sign(transaction *transaction.Transaction) (*signature.Sig
 	if wallet == nil {
 		return nil, errors.New("Wallet not initialized")
 	}
-	if transaction.SenderAddress() != wallet.Address() {
+	if transaction.SenderAddress != wallet.Address() {
 		return nil, errors.New("transaction is invalid")
 	}
 	transactionJsonBytes, err := transaction.MarshalJSON()

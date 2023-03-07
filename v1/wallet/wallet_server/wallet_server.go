@@ -28,8 +28,8 @@ type Server struct {
 
 func New(wallet *wallet.Wallet) *Server {
 	blockChainServersAddress := make(map[string]string)
-	blockChainServersAddress["main"] = "localhost:8080"
-	return &Server{wallet: wallet}
+	blockChainServersAddress["main"] = "http://localhost:8080/v1/AddTransaction"
+	return &Server{wallet: wallet, blockChainServersAddress: blockChainServersAddress}
 }
 func (server Server) Serve(port string) {
 	router := gin.New()
@@ -59,17 +59,22 @@ func (server Server) index(c *gin.Context) {
 }
 func (server Server) sendCrypto(c *gin.Context) {
 	if sendCryptoRequest, ok := extractSendCryptoData(c.Request.Body, c.Request.Header); ok {
+
 		transactionRequest, err := server.wallet.SendCrypto(sendCryptoRequest.RecipientAddress, stringTofloat64(sendCryptoRequest.Amount))
 
-		if err != nil {
+		if err == nil {
 			jsonByte, err := json.Marshal(transactionRequest)
-			if err != nil {
-				for serverAddress := range server.blockChainServersAddress {
-					go func(serverAddress string) {
-						response, err := http.Post(serverAddress, "application/json", bytes.NewReader(jsonByte))
-						res, _ := ioutil.ReadAll(response.Body)
-						fmt.Println(res, err)
-					}(serverAddress)
+			fmt.Println(transactionRequest)
+			jsonBuf := bytes.NewBuffer(jsonByte)
+			if err == nil {
+				for _, serverAddress := range server.blockChainServersAddress {
+					go func() {
+						response, err := http.Post(serverAddress, "application/json", jsonBuf)
+						if err == nil {
+							res, _ := ioutil.ReadAll(response.Body)
+							fmt.Println("res", string(res), err)
+						}
+					}()
 				}
 			}
 		}

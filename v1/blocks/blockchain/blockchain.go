@@ -58,7 +58,7 @@ func (blockChain *BlockChain) LastBlock() *block.Block {
 func (blockChain *BlockChain) AddTransaction(publicKey *ecdsa.PublicKey, sign *signature.Signature, transaction *transaction.Transaction) (bool, error) {
 	if !blockChain.isValidRewardTransaction(transaction) {
 		if verify, err := signature.VerifySignature(publicKey, sign, transaction); !verify ||
-			blockChain.CalculateTotalAmount(transaction.SenderAddress()) < transaction.Value() {
+			blockChain.CalculateTotalAmount(transaction.SenderAddress) < transaction.Value {
 			return false, err
 		}
 	}
@@ -92,7 +92,7 @@ func (blockChain *BlockChain) MiningReward() float64 {
 
 func (blockChain *BlockChain) isValidRewardTransaction(transaction *transaction.Transaction) bool {
 	//TODO: implement register miner and check the recipient address is one of registered miner
-	if transaction.SenderAddress() == blockChain.MiningRewardSenderAddress() && transaction.Value() == blockChain.MiningReward() {
+	if transaction.SenderAddress == blockChain.MiningRewardSenderAddress() && transaction.Value == blockChain.MiningReward() {
 		return true
 	}
 	return false
