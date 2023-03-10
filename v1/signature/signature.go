@@ -19,6 +19,7 @@ type Signature struct {
 func New(r, s *big.Int) *Signature {
 	return &Signature{r: r, s: s}
 }
+
 func (signature *Signature) GetR() *big.Int {
 	r := *signature.r
 	return &r

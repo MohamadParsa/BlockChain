@@ -2,8 +2,10 @@ package transaction_request
 
 import (
 	"crypto/ecdsa"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/big"
 
 	"github.com/MohamadParsa/BlockChain/v1/signature"
 	"github.com/MohamadParsa/BlockChain/v1/transaction"
@@ -34,7 +36,9 @@ func (transactionRequest *TransactionRequest) RecipientAddress() string {
 func (transactionRequest *TransactionRequest) Value() float64 {
 	return transactionRequest.Transaction.Value
 }
-
+func (transactionRequest *TransactionRequest) PublicKeyString() string {
+	return fmt.Sprintf("%x%x", transactionRequest.PublicKey.X, transactionRequest.PublicKey.Y)
+}
 func (transactionRequest *TransactionRequest) Print() {
 	fmt.Printf("$	sender:		%s\n", transactionRequest.SenderAddress())
 	fmt.Printf("$	recipient:	%s\n", transactionRequest.RecipientAddress())
@@ -44,16 +48,30 @@ func (transactionRequest *TransactionRequest) Print() {
 }
 func (transactionRequest *TransactionRequest) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
-		Sender    string               `json:"senderAddress"`
-		Recipient string               `json:"recipientAddress"`
-		Value     float64              `json:"value"`
-		Signature *signature.Signature `json:"signature"`
-		PublicKey *ecdsa.PublicKey     `json:"publicKey"`
+		Sender    string  `json:"senderAddress"`
+		Recipient string  `json:"recipientAddress"`
+		Value     float64 `json:"value"`
+		Signature string  `json:"signature"`
+		PublicKey string  `json:"publicKey"`
 	}{
 		Sender:    transactionRequest.SenderAddress(),
 		Recipient: transactionRequest.RecipientAddress(),
 		Value:     transactionRequest.Value(),
-		Signature: transactionRequest.Signature,
-		PublicKey: transactionRequest.PublicKey,
+		Signature: transactionRequest.Signature.String(),
+		PublicKey: transactionRequest.PublicKeyString(),
 	})
+}
+
+func (transactionRequest *TransactionRequest) decodePublicKeyDataFromString(signatureText string) (*big.Int, *big.Int, error) {
+	var x, y big.Int
+	byteX, err := hex.DecodeString(signatureText[:64])
+	if err != nil {
+		return nil, nil, err
+	}
+	byteY, err := hex.DecodeString(signatureText[64:])
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return x.SetBytes(byteX), y.SetBytes(byteY), nil
 }
