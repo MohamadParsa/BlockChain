@@ -3,7 +3,6 @@ package transaction_request
 import (
 	"crypto/ecdsa"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"math/big"
 
@@ -46,20 +45,7 @@ func (transactionRequest *TransactionRequest) Print() {
 	fmt.Printf("$	signature:		%3s\n", transactionRequest.Signature)
 	fmt.Printf("$	publicKey:		%3s\n", transactionRequest.PublicKey)
 }
-func (transactionRequest *TransactionRequest) MarshalJSON() ([]byte, error) {
-	return json.Marshal(struct {
-		Sender    string  `json:"senderAddress"`
-		Recipient string  `json:"recipientAddress"`
-		Value     float64 `json:"value"`
-		Signature string  `json:"signature"`
-		PublicKey string  `json:"publicKey"`
-	}{
-		Sender:    transactionRequest.SenderAddress(),
-		Recipient: transactionRequest.RecipientAddress(),
-		Value:     transactionRequest.Value(),
-		Signature: transactionRequest.Signature.String(),
-		PublicKey: transactionRequest.PublicKeyString(),
-	})
+func (transactionRequest *TransactionRequest) UnMarshalJSON() {
 }
 
 func (transactionRequest *TransactionRequest) decodePublicKeyDataFromString(signatureText string) (*big.Int, *big.Int, error) {
