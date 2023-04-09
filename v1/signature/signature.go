@@ -3,6 +3,7 @@ package signature
 import (
 	"crypto/ecdsa"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -30,6 +31,19 @@ func (signature *Signature) GetS() *big.Int {
 }
 func (signature *Signature) String() string {
 	return fmt.Sprintf("%x%x", signature.r, signature.s)
+}
+func (signature *Signature) DecodeSignature(signatureString string) (*Signature, error) {
+	var r, s big.Int
+	byteR, err := hex.DecodeString(signatureString[:64])
+	if err != nil {
+		return nil, err
+	}
+	byteS, err := hex.DecodeString(signatureString[64:])
+	if err != nil {
+		return nil, err
+	}
+
+	return &Signature{r: r.SetBytes(byteR), s: s.SetBytes(byteS)}, nil
 }
 func VerifySignature(publicKey *ecdsa.PublicKey, signature *Signature, transaction *transaction.Transaction) (bool, error) {
 	if signature == nil {

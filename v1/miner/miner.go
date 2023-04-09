@@ -42,9 +42,9 @@ func (miner *Miner) Mining() error {
 
 }
 func (miner *Miner) AddTransaction(transactionRequest *transaction_request.TransactionRequest) (bool, error) {
-	publicKey := transactionRequest.PublicKey
-	signature := transactionRequest.Signature
-	ok, err := miner.blockChain.AddTransaction(publicKey, signature, &transactionRequest.Transaction)
+	publicKey := transactionRequest.GetPublicKey()
+	signature := transactionRequest.GetSignature()
+	ok, err := miner.blockChain.AddTransaction(&publicKey, &signature, &transactionRequest.Transaction)
 	return ok, err
 
 }

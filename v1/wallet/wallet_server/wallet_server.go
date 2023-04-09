@@ -64,6 +64,8 @@ func (server Server) sendCrypto(c *gin.Context) {
 
 		if err == nil {
 			jsonByte, err := json.Marshal(transactionRequest)
+			fmt.Println("transactionRequest")
+
 			fmt.Println(transactionRequest)
 			jsonBuf := bytes.NewBuffer(jsonByte)
 			if err == nil {
