@@ -29,20 +29,21 @@ func (signature *Signature) GetS() *big.Int {
 	s := *signature.s
 	return &s
 }
-func (signature *Signature) String() string {
-	return fmt.Sprintf("%x%x", signature.r, signature.s)
+func (signature *Signature) String() [2]string {
+	return [2]string{fmt.Sprintf("%x", signature.r), fmt.Sprintf("%x", signature.s)}
 }
-func (signature *Signature) DecodeSignature(signatureString string) (*Signature, error) {
+func (signature *Signature) DecodeSignature(signatureString [2]string) (*Signature, error) {
 	var r, s big.Int
-	byteR, err := hex.DecodeString(signatureString[:64])
+	byteR, err := hex.DecodeString(signatureString[0])
 	if err != nil {
 		return nil, err
 	}
-	byteS, err := hex.DecodeString(signatureString[64:])
+	byteS, err := hex.DecodeString(signatureString[1])
 	if err != nil {
 		return nil, err
 	}
-
+	// fmt.Println("r.SetBytes(byteR)", r.SetBytes(byteR))
+	// fmt.Println("s.SetBytes(byteS)", s.SetBytes(byteS))
 	return &Signature{r: r.SetBytes(byteR), s: s.SetBytes(byteS)}, nil
 }
 func VerifySignature(publicKey *ecdsa.PublicKey, signature *Signature, transaction *transaction.Transaction) (bool, error) {

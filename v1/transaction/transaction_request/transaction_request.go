@@ -16,8 +16,8 @@ type TransactionRequest struct {
 	transaction.Transaction
 	signature *signature.Signature `json:"-"`
 	publicKey *ecdsa.PublicKey     `json:"-"`
-	Signature string               `json:"signature"`
-	PublicKey string               `json:"publicKey"`
+	Signature [2]string            `json:"signature"`
+	PublicKey [2]string            `json:"publicKey"`
 }
 
 func NewTransactionRequest(transaction transaction.Transaction, signature *signature.Signature, publicKey *ecdsa.PublicKey) *TransactionRequest {
@@ -35,29 +35,52 @@ func (transactionRequest *TransactionRequest) UnmarshalJSON(data []byte) error {
 		return nil
 	}
 	type TransactionRequestTemp struct {
-		transaction.Transaction
-		Signature string `json:"signature"`
-		PublicKey string `json:"publicKey"`
+		Sender    string    `json:"senderAddress"`
+		Recipient string    `json:"recipientAddress"`
+		Value     float64   `json:"value"`
+		Signature [2]string `json:"signature"`
+		PublicKey [2]string `json:"publicKey"`
 	}
 	transactionRequestTemp := &TransactionRequestTemp{}
 	err := json.Unmarshal(data, transactionRequestTemp)
 	if err != nil {
 		return err
 	}
+
+	transaction := transaction.New(transactionRequestTemp.Sender, transactionRequestTemp.Recipient, transactionRequestTemp.Value)
+
 	signature, err := transactionRequest.signature.DecodeSignature(transactionRequestTemp.Signature)
 	if err != nil {
 		return err
 	}
-	publicKey, err := transactionRequest.decodePublicKey(transactionRequestTemp.PublicKey)
+
+	publicKey, err := transactionRequest.DecodePublicKey(transactionRequestTemp.PublicKey)
 	if err != nil {
 		return err
 	}
-	transactionRequest.Transaction = transactionRequestTemp.Transaction
+	fmt.Println("transaction request")
+	transactionRequest.Transaction = *transaction
 	transactionRequest.signature = signature
 	transactionRequest.publicKey = publicKey
 	transactionRequest.Signature = signature.String()
-	transactionRequest.PublicKey = fmt.Sprintf("%x%x", publicKey.X, publicKey.Y)
+	transactionRequest.PublicKey = [2]string{fmt.Sprintf("%x", publicKey.X), fmt.Sprintf("%x", publicKey.Y)}
+
 	return err
+}
+func (transactionRequest *TransactionRequest) MarshalJSON() ([]byte, error) {
+	return json.Marshal(struct {
+		Sender    string    `json:"senderAddress"`
+		Recipient string    `json:"recipientAddress"`
+		Value     float64   `json:"value"`
+		Signature [2]string `json:"signature"`
+		PublicKey [2]string `json:"publicKey"`
+	}{
+		Sender:    transactionRequest.Transaction.SenderAddress,
+		Recipient: transactionRequest.Transaction.RecipientAddress,
+		Value:     transactionRequest.Transaction.Value,
+		Signature: transactionRequest.SignatureString(),
+		PublicKey: transactionRequest.PublicKeyString(),
+	})
 }
 func (transactionRequest *TransactionRequest) SenderAddress() string {
 	return transactionRequest.Transaction.SenderAddress
@@ -70,10 +93,10 @@ func (transactionRequest *TransactionRequest) RecipientAddress() string {
 func (transactionRequest *TransactionRequest) Value() float64 {
 	return transactionRequest.Transaction.Value
 }
-func (transactionRequest *TransactionRequest) PublicKeyString() string {
-	return fmt.Sprintf("%x%x", transactionRequest.publicKey.X, transactionRequest.publicKey.Y)
+func (transactionRequest *TransactionRequest) PublicKeyString() [2]string {
+	return [2]string{fmt.Sprintf("%x", transactionRequest.publicKey.X), fmt.Sprintf("%x", transactionRequest.publicKey.Y)}
 }
-func (transactionRequest *TransactionRequest) SignatureString() string {
+func (transactionRequest *TransactionRequest) SignatureString() [2]string {
 	return transactionRequest.signature.String()
 }
 func (transactionRequest *TransactionRequest) GetSignature() signature.Signature {
@@ -90,16 +113,16 @@ func (transactionRequest *TransactionRequest) Print() {
 	fmt.Printf("$	publicKey:		%3s\n", transactionRequest.PublicKey)
 }
 
-func (transactionRequest *TransactionRequest) decodePublicKey(publicKeyString string) (*ecdsa.PublicKey, error) {
+func (transactionRequest *TransactionRequest) DecodePublicKey(publicKeyString [2]string) (*ecdsa.PublicKey, error) {
 	var x, y big.Int
-	byteX, err := hex.DecodeString(publicKeyString[:64])
-	if err != nil {
-		return nil, err
-	}
-	byteY, err := hex.DecodeString(publicKeyString[64:])
-	if err != nil {
-		return nil, err
-	}
 
-	return &ecdsa.PublicKey{elliptic.P256(), x.SetBytes(byteX), y.SetBytes(byteY)}, nil
+	byteX, err := hex.DecodeString(publicKeyString[0])
+	if err != nil {
+		return nil, err
+	}
+	byteY, err := hex.DecodeString(publicKeyString[1])
+	if err != nil {
+		return nil, err
+	}
+	return &ecdsa.PublicKey{elliptic.P384(), x.SetBytes(byteX), y.SetBytes(byteY)}, nil
 }

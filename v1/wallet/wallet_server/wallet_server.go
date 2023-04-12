@@ -61,14 +61,38 @@ func (server Server) sendCrypto(c *gin.Context) {
 	if sendCryptoRequest, ok := extractSendCryptoData(c.Request.Body, c.Request.Header); ok {
 
 		transactionRequest, err := server.wallet.SendCrypto(sendCryptoRequest.RecipientAddress, stringTofloat64(sendCryptoRequest.Amount))
-
 		if err == nil {
 			jsonByte, err := json.Marshal(transactionRequest)
-			fmt.Println("transactionRequest")
+			// fmt.Println()
+			// fmt.Println("publicKey wallet", transactionRequest.GetPublicKey())
+			// fmt.Println("publicKey wallet", transactionRequest.PublicKey)
+			// s := transactionRequest.GetSignature()
+			// fmt.Println("Signature wallet", s.GetR(), " ", s.GetS())
+			// fmt.Println("Signature wallet", transactionRequest.Signature)
 
-			fmt.Println(transactionRequest)
+			// a := transactionRequest.GetPublicKey()
+			// b := transactionRequest.GetSignature()
+			// q, w := signature.VerifySignature(&a, &b, &transactionRequest.Transaction)
+			// fmt.Println(q, w)
+			// fmt.Println()
+			// var r transaction_request.TransactionRequest
+			// fmt.Println(string(jsonByte))
+			// fmt.Println()
+			// json.Unmarshal(jsonByte, &r)
+			// fmt.Println("wallet", r)
+			// c, d := r.GetPublicKey(), r.GetSignature()
+			// q2, w2 := signature.VerifySignature(&c, &d, &r.Transaction)
+			// fmt.Println(q2, w2)
+			r := transactionRequest.GetSignature()
+			fmt.Println("publicKey ", transactionRequest.GetPublicKey().X)
+			fmt.Println("publicKey ", transactionRequest.GetPublicKey().Y)
+			fmt.Println("signature ", r.GetR())
+			fmt.Println("signature ", r.GetS())
+			fmt.Println("transaction ", transactionRequest.Transaction)
+
 			jsonBuf := bytes.NewBuffer(jsonByte)
 			if err == nil {
+
 				for _, serverAddress := range server.blockChainServersAddress {
 					go func() {
 						response, err := http.Post(serverAddress, "application/json", jsonBuf)

@@ -46,10 +46,13 @@ func (restFull RestFull) blockChain(c *gin.Context) {
 	writeResponse(c, jsonByteResult, err)
 }
 func (restFull RestFull) transaction(c *gin.Context) {
-	fmt.Println(32)
 	transactionRequest, ok := extractTransactionRequest(c.Request.Body)
-	fmt.Println("transactionRequest", transactionRequest)
-	fmt.Println(ok)
+	// fmt.Println()
+	// fmt.Println("publicKey miner", transactionRequest.GetPublicKey())
+	// fmt.Println("publicKey miner", transactionRequest.PublicKey)
+	// s := transactionRequest.GetSignature()
+	// fmt.Println("Signature miner", s.GetR(), " ", s.GetS())
+	// fmt.Println("Signature miner", transactionRequest.Signature)
 
 	if ok {
 		ok, err := restFull.miner.AddTransaction(transactionRequest)
@@ -75,14 +78,15 @@ func setHealthMethod(router *gin.Engine) {
 	})
 }
 func extractTransactionRequest(b io.Reader) (*transaction_request.TransactionRequest, bool) {
-	decoder := json.NewDecoder(b)
+	data, _ := io.ReadAll(b)
+	b.Read(data)
+	fmt.Println("string(data)", string(data))
 	var transactionRequest transaction_request.TransactionRequest
-	err := decoder.Decode(&transactionRequest)
+	err := json.Unmarshal(data, &transactionRequest)
 	if err != nil {
 		log.Error(errors.Wrap(err, "failed to extract description request information from body"))
 		return nil, false
 	}
-	fmt.Println("transactionRequest", transactionRequest)
 	return &transactionRequest, isTransactionRequestValid(&transactionRequest)
 }
 func isTransactionRequestValid(transactionRequest *transaction_request.TransactionRequest) bool {

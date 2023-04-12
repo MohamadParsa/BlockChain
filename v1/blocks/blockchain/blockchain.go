@@ -56,6 +56,11 @@ func (blockChain *BlockChain) LastBlock() *block.Block {
 	return blockChain.chain[len(blockChain.chain)-1]
 }
 func (blockChain *BlockChain) AddTransaction(publicKey *ecdsa.PublicKey, sign *signature.Signature, transaction *transaction.Transaction) (bool, error) {
+	fmt.Println("publicKey ", publicKey.X)
+	fmt.Println("publicKey ", publicKey.Y)
+	fmt.Println("signature ", sign.GetR())
+	fmt.Println("signature ", sign.GetS())
+	fmt.Println("transaction ", transaction)
 	if !blockChain.isValidRewardTransaction(transaction) {
 		if verify, err := signature.VerifySignature(publicKey, sign, transaction); !verify ||
 			blockChain.CalculateTotalAmount(transaction.SenderAddress) < transaction.Value {
