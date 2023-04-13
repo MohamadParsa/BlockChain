@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/MohamadParsa/BlockChain/v1/miner"
-	"github.com/MohamadParsa/BlockChain/v1/transaction/transaction_request"
+	transaction_request "github.com/MohamadParsa/BlockChain/v1/transaction/transactionDTO"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -15,6 +16,7 @@ import (
 
 const (
 	ERR_INPUT_INVALID = "input invalid"
+	MINING_PERIOD     = time.Minute / 4
 )
 
 type RestFull struct {
@@ -31,13 +33,26 @@ func (restFull RestFull) Serve(port string) {
 
 	routerV1 := router.Group("/v1")
 	restFull.setAPIMethodsV1(routerV1)
+	restFull.runMiningCore()
 
 	log.Printf("server listening at %v \n", port)
 
 	log.Fatal(http.ListenAndServe(port, router))
 }
+func (restFull RestFull) runMiningCore() {
+	go func() {
+		for {
+			err := restFull.miner.Mining()
+			if err != nil {
+				log.Println(err)
+			}
+			time.Sleep(MINING_PERIOD)
+		}
+	}()
+}
 func (restFull RestFull) setAPIMethodsV1(router *gin.RouterGroup) {
 	router.GET("/blockChain", restFull.blockChain)
+	router.GET("/amount/:walletAddress", restFull.amount)
 	router.POST("/AddTransaction", restFull.transaction)
 }
 
@@ -45,17 +60,16 @@ func (restFull RestFull) blockChain(c *gin.Context) {
 	jsonByteResult, err := json.Marshal(restFull.miner.BlockChain())
 	writeResponse(c, jsonByteResult, err)
 }
+func (restFull RestFull) amount(c *gin.Context) {
+	walletAddress := c.Param("walletAddress")
+	jsonByteResult, err := json.Marshal(restFull.miner.BlockChain().CalculateTotalAmount(walletAddress))
+	writeResponse(c, jsonByteResult, err)
+}
 func (restFull RestFull) transaction(c *gin.Context) {
-	transactionRequest, ok := extractTransactionRequest(c.Request.Body)
-	// fmt.Println()
-	// fmt.Println("publicKey miner", transactionRequest.GetPublicKey())
-	// fmt.Println("publicKey miner", transactionRequest.PublicKey)
-	// s := transactionRequest.GetSignature()
-	// fmt.Println("Signature miner", s.GetR(), " ", s.GetS())
-	// fmt.Println("Signature miner", transactionRequest.Signature)
+	transactionDTO, ok := extractTransactionDTO(c.Request.Body)
 
 	if ok {
-		ok, err := restFull.miner.AddTransaction(transactionRequest)
+		ok, err := restFull.miner.AddTransaction(transactionDTO)
 		fmt.Println(ok, err)
 
 		jsonByteResult, _ := json.Marshal(ok)
@@ -77,21 +91,20 @@ func setHealthMethod(router *gin.Engine) {
 		c.JSON(200, gin.H{"status": "OK"})
 	})
 }
-func extractTransactionRequest(b io.Reader) (*transaction_request.TransactionRequest, bool) {
+func extractTransactionDTO(b io.Reader) (*transaction_request.TransactionDTO, bool) {
 	data, _ := io.ReadAll(b)
 	b.Read(data)
-	fmt.Println("string(data)", string(data))
-	var transactionRequest transaction_request.TransactionRequest
-	err := json.Unmarshal(data, &transactionRequest)
+	var transactionDTO transaction_request.TransactionDTO
+	err := json.Unmarshal(data, &transactionDTO)
 	if err != nil {
 		log.Error(errors.Wrap(err, "failed to extract description request information from body"))
 		return nil, false
 	}
-	return &transactionRequest, isTransactionRequestValid(&transactionRequest)
+	return &transactionDTO, isTransactionDTOValid(&transactionDTO)
 }
-func isTransactionRequestValid(transactionRequest *transaction_request.TransactionRequest) bool {
+func isTransactionDTOValid(transactionDTO *transaction_request.TransactionDTO) bool {
 	result := true
-	if transactionRequest.RecipientAddress() == "" || transactionRequest.SenderAddress() == "" || transactionRequest.Value() < 0 {
+	if transactionDTO.RecipientAddress() == "" || transactionDTO.SenderAddress() == "" || transactionDTO.Value() < 0 {
 		result = false
 	}
 

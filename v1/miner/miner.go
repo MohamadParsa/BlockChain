@@ -7,7 +7,7 @@ import (
 	"github.com/MohamadParsa/BlockChain/v1/blocks/block"
 	"github.com/MohamadParsa/BlockChain/v1/blocks/blockchain"
 	"github.com/MohamadParsa/BlockChain/v1/transaction"
-	"github.com/MohamadParsa/BlockChain/v1/transaction/transaction_request"
+	transaction_request "github.com/MohamadParsa/BlockChain/v1/transaction/transactionDTO"
 	"github.com/MohamadParsa/BlockChain/v1/wallet"
 )
 
@@ -27,12 +27,15 @@ func New(blockChain *blockchain.BlockChain, difficulty int, minerWallet *wallet.
 }
 
 func (miner *Miner) Mining() error {
-
+	if miner.blockChain.TransactionPoolCount() == 0 {
+		return nil
+	}
 	transaction := transaction.New(miner.blockChain.MiningRewardSenderAddress(), miner.minerWallet.Address(), miner.blockChain.MiningReward())
 
 	miner.blockChain.AddTransaction(miner.minerWallet.PublicKey(), nil, transaction)
 
 	transactions := miner.blockChain.CopyTransactions()
+
 	previousHash := miner.blockChain.LastBlock().Hash()
 
 	nonce := miner.findValidNonce(previousHash, transactions)
@@ -41,10 +44,10 @@ func (miner *Miner) Mining() error {
 	return nil
 
 }
-func (miner *Miner) AddTransaction(transactionRequest *transaction_request.TransactionRequest) (bool, error) {
-	publicKey := transactionRequest.GetPublicKey()
-	signature := transactionRequest.GetSignature()
-	ok, err := miner.blockChain.AddTransaction(&publicKey, &signature, &transactionRequest.Transaction)
+func (miner *Miner) AddTransaction(transactionDTO *transaction_request.TransactionDTO) (bool, error) {
+	publicKey := transactionDTO.GetPublicKey()
+	signature := transactionDTO.GetSignature()
+	ok, err := miner.blockChain.AddTransaction(&publicKey, &signature, &transactionDTO.Transaction)
 	return ok, err
 
 }

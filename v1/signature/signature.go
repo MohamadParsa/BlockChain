@@ -42,11 +42,10 @@ func (signature *Signature) DecodeSignature(signatureString [2]string) (*Signatu
 	if err != nil {
 		return nil, err
 	}
-	// fmt.Println("r.SetBytes(byteR)", r.SetBytes(byteR))
-	// fmt.Println("s.SetBytes(byteS)", s.SetBytes(byteS))
 	return &Signature{r: r.SetBytes(byteR), s: s.SetBytes(byteS)}, nil
 }
 func VerifySignature(publicKey *ecdsa.PublicKey, signature *Signature, transaction *transaction.Transaction) (bool, error) {
+
 	if signature == nil {
 		return false, errors.New("signature is invalid")
 	}

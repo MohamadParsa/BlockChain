@@ -1,6 +1,6 @@
 package wallet_server
 
-type SendCryptoRequest struct {
+type SendCryptoRequestDTO struct {
 	RecipientAddress string `json:"recipientAddress"`
 	Amount           string `json:"amount"`
 }

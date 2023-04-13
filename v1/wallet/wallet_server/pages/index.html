@@ -7,16 +7,12 @@
   <body>
     <h1>My Wallet</h1>
     <label>Balance:</label>
-    <label id="Balance">0</label>
+    <label id="balance">0</label>
     <button onclick="refreshWallet()">&#x21bb;</button>
     <!-- Refresh button -->
    
     
     <br>
-    <!-- Public key label -->
-    <label>Public key:</label>
-    <div id="public-key" style="word-wrap: anywhere;color: darkgray;font-size: small;" >{{.PublicKeyString}}</div>
-    
     <!-- Blockchain address label -->
     <label>Wallet ddress:</label>
     <div id="wallet-address" style="word-wrap: anywhere;color: darkgray;font-size: small;">{{.Address}}</div>
@@ -36,7 +32,20 @@
     
     <script>
       function refreshWallet() {
-        // Code to refresh wallet
+       $.ajax({
+  
+                url:'balance',
+                type: "GET",
+                success: function (res) {
+                    $('#balance').text(res);
+                },
+  
+                // Error handling 
+                error: function (error) {
+                    $('#balance').text(res);
+                    console.log(`Error ${error}`);
+                }
+            });
       }
       
       function sendCrypto() {
@@ -48,11 +57,12 @@
                 data:JSON.stringify({"recipientAddress":$('#recipient-address').val(),"amount":$('#amount').val()}),
                 success: function (res) {
                     var x = JSON.stringify(res);
-                    console.log(x);
+                    alert(x);
                 },
   
                 // Error handling 
                 error: function (error) {
+                    alert(error.responseText);
                     console.log(`Error ${error}`);
                 }
             });

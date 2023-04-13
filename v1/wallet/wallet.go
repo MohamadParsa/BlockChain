@@ -11,7 +11,7 @@ import (
 
 	"github.com/MohamadParsa/BlockChain/v1/signature"
 	"github.com/MohamadParsa/BlockChain/v1/transaction"
-	"github.com/MohamadParsa/BlockChain/v1/transaction/transaction_request"
+	transaction_request "github.com/MohamadParsa/BlockChain/v1/transaction/transactionDTO"
 	"github.com/btcsuite/btcd/btcutil/base58"
 	logger "go.uber.org/zap"
 	"golang.org/x/crypto/ripemd160"
@@ -111,7 +111,7 @@ func (wallet *Wallet) Address() string {
 	}
 	return wallet.address
 }
-func (wallet *Wallet) SendCrypto(recipient_address string, amount float64) (*transaction_request.TransactionRequest, error) {
+func (wallet *Wallet) SendCrypto(recipient_address string, amount float64) (*transaction_request.TransactionDTO, error) {
 	if wallet == nil {
 		return nil, errors.New("wallet is invalid")
 	}
@@ -120,8 +120,8 @@ func (wallet *Wallet) SendCrypto(recipient_address string, amount float64) (*tra
 	if err != nil {
 		return nil, errors.New("error in sign transaction")
 	}
-	transactionRequest := transaction_request.NewTransactionRequest(*tran, sign, wallet.PublicKey())
-	return transactionRequest, nil
+	transactionDTO := transaction_request.NewTransactionDTO(*tran, sign, wallet.PublicKey())
+	return transactionDTO, nil
 }
 
 func (wallet *Wallet) Sign(transaction *transaction.Transaction) (*signature.Signature, error) {

@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"sync"
 	"text/template"
 
 	"github.com/MohamadParsa/BlockChain/v1/wallet"
@@ -17,8 +18,10 @@ import (
 )
 
 const (
-	TEMPLATE_FOLDER = "./v1/wallet/wallet_server/pages/"
-	INDEX_TEMPLATE  = "index.html"
+	TEMPLATE_FOLDER                = "./v1/wallet/wallet_server/pages/"
+	INDEX_TEMPLATE                 = "index.html"
+	ADD_TRANSACTION_METHOD_ADDRESS = "/v1/AddTransaction"
+	AMOUNT_METHOD_ADDRESS          = "/v1/amount"
 )
 
 type Server struct {
@@ -28,7 +31,7 @@ type Server struct {
 
 func New(wallet *wallet.Wallet) *Server {
 	blockChainServersAddress := make(map[string]string)
-	blockChainServersAddress["main"] = "http://localhost:8080/v1/AddTransaction"
+	blockChainServersAddress["main"] = "http://localhost:8080"
 	return &Server{wallet: wallet, blockChainServersAddress: blockChainServersAddress}
 }
 func (server Server) Serve(port string) {
@@ -45,7 +48,9 @@ func (server Server) Serve(port string) {
 }
 func (server Server) setAPIMethodsV1(router *gin.RouterGroup) {
 	router.GET("/index", server.index)
+	router.GET("/balance", server.balance)
 	router.POST("/sendCrypto", server.sendCrypto)
+
 }
 
 func (server Server) index(c *gin.Context) {
@@ -57,71 +62,93 @@ func (server Server) index(c *gin.Context) {
 		c.Data(200, "text/html", []byte(html))
 	}
 }
+func (server Server) balance(c *gin.Context) {
+	responseLog := make(map[string]float64, len(server.blockChainServersAddress))
+	waitGroup := sync.WaitGroup{}
+
+	for _, serverAddress := range server.blockChainServersAddress {
+		waitGroup.Add(1)
+		responseLog[serverAddress] = 0
+		go func() {
+			response, err := http.Get(serverAddress + AMOUNT_METHOD_ADDRESS + "/" + server.wallet.Address())
+			if err == nil {
+				res, _ := ioutil.ReadAll(response.Body)
+				log.Println("res", string(res))
+				amount, err := strconv.ParseFloat(string(res), 64)
+				if err == nil {
+					responseLog[serverAddress] = amount
+				}
+			}
+			waitGroup.Done()
+		}()
+	}
+	waitGroup.Wait()
+	mostRepeatedResponse := 0.0
+	responseMap := make(map[float64]int, len(server.blockChainServersAddress))
+
+	for _, response := range responseLog {
+		responseMap[response] = +1
+		if mostRepeatedResponse == 0.0 ||
+			responseMap[response] > responseMap[mostRepeatedResponse] {
+			mostRepeatedResponse = response
+		}
+
+	}
+	c.Data(200, "text/html", []byte(strconv.FormatFloat(mostRepeatedResponse, 'f', -1, 64)))
+
+}
 func (server Server) sendCrypto(c *gin.Context) {
+	responseLog := make(map[string]int, len(server.blockChainServersAddress))
+	waitGroup := sync.WaitGroup{}
 	if sendCryptoRequest, ok := extractSendCryptoData(c.Request.Body, c.Request.Header); ok {
-
-		transactionRequest, err := server.wallet.SendCrypto(sendCryptoRequest.RecipientAddress, stringTofloat64(sendCryptoRequest.Amount))
+		transactionDTO, err := server.wallet.SendCrypto(sendCryptoRequest.RecipientAddress, stringTofloat64(sendCryptoRequest.Amount))
 		if err == nil {
-			jsonByte, err := json.Marshal(transactionRequest)
-			// fmt.Println()
-			// fmt.Println("publicKey wallet", transactionRequest.GetPublicKey())
-			// fmt.Println("publicKey wallet", transactionRequest.PublicKey)
-			// s := transactionRequest.GetSignature()
-			// fmt.Println("Signature wallet", s.GetR(), " ", s.GetS())
-			// fmt.Println("Signature wallet", transactionRequest.Signature)
-
-			// a := transactionRequest.GetPublicKey()
-			// b := transactionRequest.GetSignature()
-			// q, w := signature.VerifySignature(&a, &b, &transactionRequest.Transaction)
-			// fmt.Println(q, w)
-			// fmt.Println()
-			// var r transaction_request.TransactionRequest
-			// fmt.Println(string(jsonByte))
-			// fmt.Println()
-			// json.Unmarshal(jsonByte, &r)
-			// fmt.Println("wallet", r)
-			// c, d := r.GetPublicKey(), r.GetSignature()
-			// q2, w2 := signature.VerifySignature(&c, &d, &r.Transaction)
-			// fmt.Println(q2, w2)
-			r := transactionRequest.GetSignature()
-			fmt.Println("publicKey ", transactionRequest.GetPublicKey().X)
-			fmt.Println("publicKey ", transactionRequest.GetPublicKey().Y)
-			fmt.Println("signature ", r.GetR())
-			fmt.Println("signature ", r.GetS())
-			fmt.Println("transaction ", transactionRequest.Transaction)
-
+			jsonByte, err := json.Marshal(transactionDTO)
 			jsonBuf := bytes.NewBuffer(jsonByte)
 			if err == nil {
 
 				for _, serverAddress := range server.blockChainServersAddress {
+					waitGroup.Add(1)
+					responseLog[serverAddress] = 0
 					go func() {
-						response, err := http.Post(serverAddress, "application/json", jsonBuf)
+						response, err := http.Post(serverAddress+ADD_TRANSACTION_METHOD_ADDRESS, "application/json", jsonBuf)
 						if err == nil {
 							res, _ := ioutil.ReadAll(response.Body)
-							fmt.Println("res", string(res), err)
+							log.Println("res", string(res))
+							responseLog[serverAddress] = response.StatusCode
 						}
+						waitGroup.Done()
 					}()
 				}
+				waitGroup.Wait()
+			}
+
+		}
+		successResponseCount := 0
+		for _, response := range responseLog {
+			if response == 200 {
+				successResponseCount++
 			}
 		}
-		message := "success"
-		if err != nil {
-			message = "failed"
-		}
 
-		writeResponse(c, []byte(`{"result":"`+message+`"}`), err)
+		responseStatusCode := 500
+		if successResponseCount >= (len(server.blockChainServersAddress)/2)+1 {
+			responseStatusCode = 200
+		}
+		writeDefaultResponse(c, responseStatusCode)
 	} else {
 
 		c.JSON(500, gin.H{"result": "error in parameters value"})
 
 	}
 }
-func writeResponse(c *gin.Context, jsonByteResult []byte, err error) {
-	if err != nil {
-		c.JSON(500, gin.H{"result": "internal error"})
-		return
+func writeDefaultResponse(c *gin.Context, statusCode int) {
+	fmt.Println(statusCode)
+	message := "success"
+	if statusCode != 200 {
+		message = "failed"
 	}
-	c.Data(200, "application/json", jsonByteResult)
+	c.Data(statusCode, "application/json", []byte("\"result\":\""+message+"\""))
 }
 func setHealthMethod(router *gin.Engine) {
 	router.GET("/health", func(c *gin.Context) {
@@ -145,12 +172,11 @@ func createContentByWalletTemplate(wallet *wallet.Wallet, templateName string) (
 	}
 	return byteBuffer.String(), nil
 }
-func extractSendCryptoData(b io.Reader, h http.Header) (*SendCryptoRequest, bool) {
-	decoder := json.NewDecoder(b)
+func extractSendCryptoData(b io.Reader, h http.Header) (*SendCryptoRequestDTO, bool) {
+	data, _ := io.ReadAll(b)
 
-	fmt.Println(b)
-	var sendCryptoRequest SendCryptoRequest
-	err := decoder.Decode(&sendCryptoRequest)
+	var sendCryptoRequest SendCryptoRequestDTO
+	err := json.Unmarshal(data, &sendCryptoRequest)
 	if err != nil {
 		log.Error(errors.Wrap(err, "failed to extract sendCrypto request information from body"))
 		return nil, false
